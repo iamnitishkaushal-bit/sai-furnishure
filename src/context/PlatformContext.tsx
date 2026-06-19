@@ -67,7 +67,7 @@ interface PlatformContextProps {
   // Notification Management
   dismissNotification: (id: string) => void;
   markNotificationsAsRead: (isAdmin: boolean) => void;
-  addNotification: (type: Notification['type'], title: string, message: string, isAdmin: boolean, businessId?: string) => void;
+  addNotification: (type: Notification['type'], title: string, message: string, isAdmin: boolean, businessId?: string, orderId?: string) => void;
 }
 
 const PlatformContext = createContext<PlatformContextProps | undefined>(undefined);
@@ -129,7 +129,8 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
     title: string,
     message: string,
     isAdmin: boolean,
-    businessId?: string
+    businessId?: string,
+    orderId?: string
   ) => {
     const freshNotif: Notification = {
       id: `notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -140,6 +141,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
       read: false,
       isAdmin,
+      orderId,
     };
     updateDB({
       ...db,
@@ -476,15 +478,19 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
     addNotification(
       'order',
       'New Order Received',
-      `Order #${orderId.substring(6).toUpperCase()} placed by ${customerInfo.name} for ₹${total.toLocaleString('en-IN')}`,
-      true
+      `Order #${orderId.toUpperCase()} placed by ${customerInfo.name} for ₹${total.toLocaleString('en-IN')}`,
+      true,
+      activeBusinessId,
+      orderId
     );
     // Customer alert
     addNotification(
       'order',
       'Order Confirmed',
-      `Thank you! Your order #${orderId.substring(6).toUpperCase()} values ₹${total.toLocaleString('en-IN')} has been logged.`,
-      false
+      `Thank you! Your order #${orderId.toUpperCase()} values ₹${total.toLocaleString('en-IN')} has been logged.`,
+      false,
+      activeBusinessId,
+      orderId
     );
 
     return newOrder;

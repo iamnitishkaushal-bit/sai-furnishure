@@ -109,6 +109,7 @@ export interface Notification {
   createdAt: string;
   read: boolean;
   isAdmin: boolean;
+  orderId?: string;
 }
 
 export interface Customer {

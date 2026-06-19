@@ -1,9 +1,10 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
 import { usePlatform } from '../context/PlatformContext';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart3, Plus, Edit2, Trash2, Check, X, Shield, RefreshCw, 
   MapPin, Phone, MessageSquare, Calendar, ClipboardCheck, ArrowUpRight, PlusCircle, LayoutDashboard, Database, FolderPlus,
-  FileSpreadsheet, Download, UploadCloud, CheckCircle2, AlertTriangle, Layers, Settings, Activity, FileText, CheckSquare, Square, SlidersHorizontal, Sparkles
+  FileSpreadsheet, Download, UploadCloud, CheckCircle2, AlertTriangle, Layers, Settings, Activity, FileText, CheckSquare, Square, SlidersHorizontal, Sparkles, Bell
 } from 'lucide-react';
 import { Business, Category, Product, Order, Enquiry, Booking } from '../types';
 import { getProductImage } from './ProductVisualizer';
@@ -86,6 +87,60 @@ export default function AdminDashboard() {
   const [selectedDispatchManifestOrder, setSelectedDispatchManifestOrder] = useState<Order | null>(null);
   const [assignedWaybills, setAssignedWaybills] = useState<Record<string, string>>({});
   const [waybillInputMap, setWaybillInputMap] = useState<Record<string, string>>({});
+
+  // Real-time Active Toast Notifications system
+  interface NewOrderToast {
+    id: string;
+    order: Order;
+    visible: boolean;
+  }
+  const [activeToasts, setActiveToasts] = useState<NewOrderToast[]>([]);
+  const knownOrderIdsRef = useRef<Set<string>>(new Set(orders.map(o => o.id)));
+
+  useEffect(() => {
+    // Audit new orders placed during session
+    const newOrders = orders.filter(o => !knownOrderIdsRef.current.has(o.id));
+    if (newOrders.length > 0) {
+      newOrders.forEach(o => {
+        const toastId = `toast-${Date.now()}-${o.id}`;
+        
+        setActiveToasts(prev => [
+          ...prev,
+          { id: toastId, order: o, visible: true }
+        ]);
+
+        // Sensory dispatch chime (High-fidelity digital ping)
+        try {
+          const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const osc = context.createOscillator();
+          const gain = context.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, context.currentTime); // C5
+          osc.frequency.setValueAtTime(659.25, context.currentTime + 0.08); // E5
+          osc.frequency.setValueAtTime(783.99, context.currentTime + 0.16); // G5 
+          gain.gain.setValueAtTime(0.08, context.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.6);
+          osc.connect(gain);
+          gain.connect(context.destination);
+          osc.start();
+          osc.stop(context.currentTime + 0.6);
+        } catch (e) {
+          // Playback blocked by client policy
+        }
+
+        // Auto dismiss after 8 seconds
+        setTimeout(() => {
+          setActiveToasts(prev => prev.map(t => t.id === toastId ? { ...t, visible: false } : t));
+          setTimeout(() => {
+            setActiveToasts(prev => prev.filter(t => t.id !== toastId));
+          }, 600);
+        }, 8000);
+
+        // Append to known list
+        knownOrderIdsRef.current.add(o.id);
+      });
+    }
+  }, [orders]);
 
   // Business Extensibility Form
   const [newBizId, setNewBizId] = useState('');
@@ -2279,6 +2334,93 @@ export default function AdminDashboard() {
           </div>
         );
       })()}
+
+      {/* Real-time Order Toasts Panel */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none">
+        <AnimatePresence>
+          {activeToasts.map(toast => {
+            if (!toast.visible) return null;
+            const o = toast.order;
+            const biz = businesses.find(b => b.id === o.businessId);
+            
+            return (
+              <motion.div
+                key={toast.id}
+                initial={{ opacity: 0, scale: 0.85, y: 50 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                className="pointer-events-auto bg-zinc-950 text-white rounded-3xl p-5 shadow-2xl border border-zinc-800 flex flex-col gap-3 relative overflow-hidden"
+              >
+                {/* Subtle accent color top bar or glow */}
+                <div 
+                  className="absolute top-0 left-0 right-0 h-1 bg-amber-500" 
+                  style={{ backgroundColor: biz?.accentColor || '#f59e0b' }}
+                />
+
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex gap-2.5 items-center">
+                    <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                    <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 p-1.5 rounded-xl shrink-0">
+                      <Bell className="h-4 w-4 animate-bounce text-amber-500" />
+                    </div>
+                    <div>
+                      <span className="block text-[9px] font-black tracking-widest text-zinc-400 font-mono uppercase">
+                        REAL-TIME PIPELINE DISPATCH
+                      </span>
+                      <h4 className="font-extrabold text-sm text-zinc-100">
+                        New Order Placed!
+                      </h4>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setActiveToasts(prev => prev.map(t => t.id === toast.id ? { ...t, visible: false } : t));
+                    }}
+                    className="text-zinc-500 hover:text-zinc-300 p-1 rounded-full hover:bg-zinc-900 transition-colors cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-zinc-300 text-left">
+                  <p className="font-mono text-[11px] font-black text-white bg-zinc-900 px-2.5 py-1 rounded-xl w-fit border border-zinc-800">
+                    #{o.id.toUpperCase()}
+                  </p>
+                  <p className="leading-snug">
+                    Buyer <strong className="text-white">{o.customerName}</strong> has purchased <strong className="text-white">{o.items.reduce((acc, current) => acc + current.quantity, 0)} items</strong> totalling <span className="font-mono text-amber-400 font-black text-sm">₹{o.total.toLocaleString('en-IN')}</span>.
+                  </p>
+                </div>
+
+                <div className="flex gap-2.5 border-t border-zinc-900 pt-3 mt-1">
+                  <button
+                    onClick={() => {
+                      // Focus on this order in Admin View
+                      setAdminTab('orders');
+                      setSelectedDispatchManifestOrder(o);
+                      // Dismiss toast
+                      setActiveToasts(prev => prev.map(t => t.id === toast.id ? { ...t, visible: false } : t));
+                    }}
+                    className="flex-1 text-center bg-amber-500 hover:bg-amber-600 font-black text-[10px] text-zinc-950 uppercase py-2 px-3 rounded-xl tracking-wider select-none cursor-pointer transition-all active:scale-95"
+                  >
+                    Print Labels & Slip
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAdminTab('orders');
+                      setActiveToasts(prev => prev.map(t => t.id === toast.id ? { ...t, visible: false } : t));
+                    }}
+                    className="bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 font-bold text-[10px] text-zinc-300 uppercase py-2 px-3 rounded-xl tracking-wider select-none cursor-pointer transition-colors"
+                  >
+                    View list
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
 
     </div>
   );
