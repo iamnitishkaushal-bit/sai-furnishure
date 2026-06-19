@@ -1,0 +1,6 @@
+{
+  "name": "Unified Multi-Business Platform",
+  "description": "High-fidelity mobile-first unified platform to manage and shop across AgroMart and ElectroHub, supporting bookings, enquiries, and orders from a single backend.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
