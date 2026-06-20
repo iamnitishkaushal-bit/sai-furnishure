@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Business, Category, Product, Order, Enquiry, Booking } from '../types';
 import { getProductImage } from './ProductVisualizer';
+import BulkImageUploadTab from './BulkImageUploadTab';
 
 export default function AdminDashboard() {
   const {
@@ -33,7 +34,7 @@ export default function AdminDashboard() {
   } = usePlatform();
 
   // Selected Active Segment in Admin
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'products' | 'orders' | 'bookings' | 'enquiries' | 'businesses'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'products' | 'orders' | 'bookings' | 'enquiries' | 'businesses' | 'bulk-upload'>('dashboard');
   const [selectedBusinessFilter, setSelectedBusinessFilter] = useState<string>('all');
 
   // Bulk Inventory Management Center States
@@ -348,6 +349,7 @@ export default function AdminDashboard() {
           { id: 'bookings', label: 'Equipment Bookings', icon: <Calendar className="h-4 w-4" /> },
           { id: 'enquiries', label: 'Customer Enquiries', icon: <MessageSquare className="h-4 w-4" /> },
           { id: 'businesses', label: 'Add Scalable Business', icon: <FolderPlus className="h-4 w-4" /> },
+          { id: 'bulk-upload', label: 'Bulk Image Upload', icon: <UploadCloud className="h-4 w-4 text-amber-500 animate-pulse" /> },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -2104,6 +2106,10 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {adminTab === 'bulk-upload' && (
+        <BulkImageUploadTab />
       )}
 
       {/* CUSTOM PRINTABLE DISPATCH MANIFEST OVERLAY */}

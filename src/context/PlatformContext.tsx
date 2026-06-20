@@ -73,7 +73,29 @@ interface PlatformContextProps {
 const PlatformContext = createContext<PlatformContextProps | undefined>(undefined);
 
 export function PlatformProvider({ children }: { children: ReactNode }) {
-  const [db, setDb] = useState<LocalDB>(() => loadDB());
+  const [db, setDb] = useState<LocalDB>(() => {
+    const rawDB = loadDB();
+    // Auto-repair any products that have mapped categoryId belonging to a different businessId
+    let repaired = false;
+    const repairedProducts = rawDB.products.map(p => {
+      const matchedCat = rawDB.categories.find(c => c.id === p.categoryId);
+      if (matchedCat && matchedCat.businessId !== p.businessId) {
+        repaired = true;
+        return {
+          ...p,
+          businessId: matchedCat.businessId,
+          tags: p.tags ? Array.from(new Set([...p.tags, matchedCat.businessId])) : [p.categoryId, matchedCat.businessId]
+        };
+      }
+      return p;
+    });
+    if (repaired) {
+      const cleanDB = { ...rawDB, products: repairedProducts };
+      saveDB(cleanDB);
+      return cleanDB;
+    }
+    return rawDB;
+  });
   const [activeBusinessId, setActiveBusinessId] = useState<string>('agromart');
   const [carts, setCarts] = useState<Record<string, CartItem[]>>(() => {
     try {
@@ -174,8 +196,11 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
   // Add Product (CRUD)
   const addProduct = (newProd: Omit<Product, 'id'>) => {
     const newId = `prod-${Date.now()}`;
+    const matchedCategory = db.categories.find(c => c.id === newProd.categoryId);
+    const targetBusinessId = matchedCategory?.businessId || newProd.businessId;
     const fullProd: Product = {
       ...newProd,
+      businessId: targetBusinessId,
       id: newId,
       availability: newProd.stock > 10 ? 'in-stock' : newProd.stock > 0 ? 'low-stock' : 'out-of-stock',
     };
@@ -222,11 +247,16 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
   // Bulk Add Products
   const bulkAddProducts = (newProds: Omit<Product, 'id'>[]) => {
     const startId = Date.now();
-    const formatted: Product[] = newProds.map((prod, idx) => ({
-      ...prod,
-      id: `prod-bulk-${startId}-${idx}-${Math.floor(Math.random() * 1000)}`,
-      availability: prod.stock > 10 ? 'in-stock' : prod.stock > 0 ? 'low-stock' : 'out-of-stock',
-    }));
+    const formatted: Product[] = newProds.map((prod, idx) => {
+      const matchedCategory = db.categories.find(c => c.id === prod.categoryId);
+      const targetBusinessId = matchedCategory?.businessId || prod.businessId;
+      return {
+        ...prod,
+        businessId: targetBusinessId,
+        id: `prod-bulk-${startId}-${idx}-${Math.floor(Math.random() * 1000)}`,
+        availability: prod.stock > 10 ? 'in-stock' : prod.stock > 0 ? 'low-stock' : 'out-of-stock',
+      };
+    });
     updateDB({
       ...db,
       products: [...db.products, ...formatted],
