@@ -309,7 +309,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div id="admin-workspace" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+    <div id="admin-workspace" className="flex-1 flex flex-col mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 pb-12 sm:pb-16 space-y-6">
       
       {/* Dynamic Header Controls */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-4">
@@ -1415,7 +1415,7 @@ export default function AdminDashboard() {
       {/* Product Register Form Dialog (Drawers simulation) */}
       {showAddProductDrawer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-lg rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl overflow-y-auto max-h-[90dvh] animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-gray-950">
               {editingProductId ? 'Edit Product Setup' : 'Register New Catalog Product'}
             </h3>
@@ -2120,7 +2120,7 @@ export default function AdminDashboard() {
         
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/75 p-4 backdrop-blur-md">
-            <div className="relative w-full max-w-3xl rounded-3xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-2xl overflow-y-auto max-h-[92vh] text-left animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-3xl rounded-3xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-2xl overflow-y-auto max-h-[92dvh] text-left animate-in fade-in zoom-in-95 duration-200">
               
               {/* Floating cancel actions button */}
               <button
@@ -2342,7 +2342,7 @@ export default function AdminDashboard() {
       })()}
 
       {/* Real-time Order Toasts Panel */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none">
+      <div className="fixed bottom-6 right-4 left-4 sm:left-auto sm:right-6 z-50 flex flex-col gap-3 w-auto sm:w-full sm:max-w-sm pointer-events-none">
         <AnimatePresence>
           {activeToasts.map(toast => {
             if (!toast.visible) return null;

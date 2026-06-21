@@ -55,14 +55,14 @@ export default function Header() {
         <div className="flex md:hidden w-full items-center justify-between gap-2">
           
           {/* Side-by-side Segmented Business Switcher */}
-          <div className="flex bg-gray-100 p-1 rounded-2xl border border-gray-200/80 shadow-inner">
+          <div className="flex bg-gray-100 p-0.5 sm:p-1 rounded-2xl border border-gray-200/80 shadow-inner">
             {businesses.map((biz) => {
               const isActive = biz.id === activeBusiness.id;
               return (
                 <button
                   key={biz.id}
                   onClick={() => handleSwitchBusiness(biz.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold transition-all ${
                     isActive
                       ? 'bg-white text-gray-950 shadow-xs ring-1 ring-black/5'
                       : 'text-gray-500 hover:text-gray-800'

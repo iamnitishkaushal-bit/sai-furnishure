@@ -80,7 +80,7 @@ export default function CatalogView() {
   };
 
   return (
-    <div id="catalog-view" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+    <div id="catalog-view" className="flex-1 flex flex-col mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 pb-12 sm:pb-16 space-y-6">
       
       {/* Dynamic Catalog Section Title */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-4">

@@ -159,7 +159,7 @@ export default function CartView() {
   }
 
   return (
-    <div id="cart-workspace" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6 animate-in fade-in duration-200">
+    <div id="cart-workspace" className="flex-1 flex flex-col mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 pb-12 sm:pb-16 space-y-6 animate-in fade-in duration-200">
       
       {/* Title with status step indicator */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-4">
@@ -305,7 +305,7 @@ export default function CartView() {
 
             {/* Step 2: Customer Coordinates Form */}
             {checkoutStep === 'details' && (
-              <bg-white className="block bg-white border border-gray-200 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="block bg-white border border-gray-200 rounded-3xl p-5 shadow-xs space-y-4">
                 <button
                   type="button"
                   onClick={() => setCheckoutStep('cart')}
@@ -407,7 +407,7 @@ export default function CartView() {
                     Proceed to Simulated Payment Gateway
                   </button>
                 </form>
-              </bg-white>
+              </div>
             )}
 
             {/* Step 3: Payment Gateway Selector */}

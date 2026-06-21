@@ -62,7 +62,7 @@ export default function HomeView() {
   const bannerSrc = isAgro ? heroImages.agromart : heroImages.electrohub;
 
   return (
-    <div id="home-view" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-8">
+    <div id="home-view" className="flex-1 flex flex-col mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 pb-12 sm:pb-16 space-y-8">
       
       {/* 1. Curated Premium Active Business Hero */}
       <div 

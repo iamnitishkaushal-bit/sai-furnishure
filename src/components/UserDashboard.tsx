@@ -48,7 +48,7 @@ export default function UserDashboard() {
   };
 
   return (
-    <div id="customer-profile-dashboard" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6 animate-in fade-in duration-200">
+    <div id="customer-profile-dashboard" className="flex-1 flex flex-col mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 pb-12 sm:pb-16 space-y-6 animate-in fade-in duration-200">
       
       {/* Upper account greetings banner */}
       <div className="rounded-3xl border border-gray-200 bg-white p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">

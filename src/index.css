@@ -17,6 +17,10 @@
 }
 
 /* Base resets & animations */
+*, ::before, ::after {
+  box-sizing: border-box;
+}
+
 html, body, #root {
   width: 100%;
   max-width: 100%;
@@ -25,6 +29,11 @@ html, body, #root {
   min-height: 100dvh;
   margin: 0;
   padding: 0;
+}
+
+main, header, footer, section, article, nav, form, .container {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 body {

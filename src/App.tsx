@@ -20,12 +20,11 @@ function PlatformApp() {
   const mainScrollRef = useRef<HTMLElement>(null);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
 
-  // Unified scroll monitor for both mobile (scrolling on <main>) and desktop (scrolling on window)
+  // Unified scroll monitor for both mobile and desktop scrolling on window
   const updateScrollVisibility = () => {
-    const mainScroll = mainScrollRef.current ? mainScrollRef.current.scrollTop : 0;
-    const windowScroll = window.scrollY;
+    const windowScroll = window.scrollY || document.documentElement.scrollTop;
     
-    if (mainScroll > 350 || windowScroll > 350) {
+    if (windowScroll > 350) {
       setShowScrollToTop(true);
     } else {
       setShowScrollToTop(false);
@@ -97,7 +96,7 @@ function PlatformApp() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
-          className="h-full w-full"
+          className="flex-1 flex flex-col w-full"
         >
           {element}
         </motion.div>
@@ -136,17 +135,19 @@ function PlatformApp() {
   );
 
   return (
-    <div className="flex h-screen h-dvh md:h-auto md:min-h-screen flex-col bg-[#F5F5F3] overflow-hidden md:overflow-visible selection:bg-amber-100 selection:text-amber-905">
+    <div className="flex min-h-dvh max-w-full box-border flex-col bg-[#F5F5F3] overflow-x-hidden md:overflow-visible selection:bg-amber-100 selection:text-amber-905">
       
       {/* Dynamic Navigation Header */}
       <Header />
 
       {/* Primary Application Body */}
-      <main ref={mainScrollRef} onScroll={updateScrollVisibility} className="flex-grow overflow-y-auto md:overflow-visible pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
-        {renderActiveScreen()}
+      <main ref={mainScrollRef} className="flex-1 flex flex-col w-full max-w-full box-border pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-12">
+        <div className="flex-1 flex flex-col w-full max-w-full box-border">
+          {renderActiveScreen()}
+        </div>
         
-        {/* Render footer inside scrollable container on mobile */}
-        <div className="block md:hidden">
+        {/* Render footer inside standard document flow at content end */}
+        <div className="w-full mt-auto">
           {renderFooter()}
         </div>
       </main>
@@ -207,10 +208,7 @@ function PlatformApp() {
         </button>
       </div>
 
-      {/* Render footer for desktop at standard document end */}
-      <div className="hidden md:block">
-        {renderFooter()}
-      </div>
+
 
       {/* Subtly Animated Scroll-To-Top Hover Button */}
       <AnimatePresence>
