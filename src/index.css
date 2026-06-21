@@ -18,6 +18,9 @@
 
 /* Base resets & animations */
 html, body, #root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   min-height: 100%;
   min-height: 100dvh;
   margin: 0;
