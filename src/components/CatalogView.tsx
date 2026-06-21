@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePlatform } from '../context/PlatformContext';
-import { Search, SlidersHorizontal, Info, ShoppingCart, MessageSquare, Calendar, ChevronRight } from 'lucide-react';
+import { Search, SlidersHorizontal, Info, ShoppingCart, MessageSquare, Calendar, ChevronRight, Check, Plus, Minus } from 'lucide-react';
 import ProductVisualizer from './ProductVisualizer';
 import { imageLibrary } from '../config/imageLibrary';
 
@@ -11,7 +11,10 @@ export default function CatalogView() {
     products,
     setSelectedProductId,
     setCurrentScreen,
-    addToCart
+    addToCart,
+    carts,
+    updateCartQuantity,
+    removeFromCart
   } = usePlatform();
 
   const [localSearch, setLocalSearch] = useState('');
@@ -301,22 +304,38 @@ export default function CatalogView() {
                 const salePrice = p.salePrice;
                 const isOutOfStock = p.stock === 0;
 
+                const businessCart = carts[activeBusiness.id] || [];
+                const cartItem = businessCart.find(item => item.product.id === p.id);
+                const inCartQty = cartItem ? cartItem.quantity : 0;
+
                 return (
                   <div
                     key={p.id}
                     onClick={() => handleProductDetails(p.id)}
-                    className="group relative flex flex-col rounded-2xl border border-gray-200 bg-white p-3 cursor-pointer select-none shadow-xs hover:shadow-lg transition-all hover:border-amber-300"
+                    className={`group relative flex flex-col rounded-2xl border p-3 cursor-pointer select-none shadow-xs hover:shadow-lg transition-all ${
+                      inCartQty > 0 
+                        ? 'border-amber-400 bg-amber-50/10 hover:border-amber-500' 
+                        : 'border-gray-200 bg-white hover:border-amber-300'
+                    }`}
                   >
                     
                     {/* Visualizer header */}
-                    <ProductVisualizer
-                      id={p.id}
-                      color={p.image}
-                      category={exactCat}
-                      title={p.title}
-                      className="aspect-square w-full"
-                      stock={p.stock}
-                    />
+                    <div className="relative overflow-hidden rounded-xl">
+                      <ProductVisualizer
+                        id={p.id}
+                        color={p.image}
+                        category={exactCat}
+                        title={p.title}
+                        className="aspect-square w-full"
+                        stock={p.stock}
+                      />
+                      {inCartQty > 0 && (
+                        <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-emerald-600 px-2 sm:px-2.5 py-1 text-[9px] sm:text-[10px] font-bold text-white shadow-sm border border-emerald-500 animate-in fade-in zoom-in-95 duration-150">
+                          <Check className="h-3 sm:h-3.5 w-3 sm:w-3.5 stroke-[3]" />
+                          <span>Added ({inCartQty})</span>
+                        </div>
+                      )}
+                    </div>
 
                     <div className="mt-3.5 flex flex-col justify-between flex-1 space-y-3">
                       <div className="space-y-1">
@@ -367,29 +386,64 @@ export default function CatalogView() {
                           )}
                         </div>
 
-                        {/* Interactive dynamic button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (p.allowedActions.includes('buy') && !isOutOfStock) {
-                              addToCart(p);
-                            } else {
-                              handleProductDetails(p.id);
-                            }
-                          }}
-                          disabled={isOutOfStock && p.allowedActions.includes('buy') && p.allowedActions.length === 1}
-                          className="w-full flex items-center justify-center rounded-xl bg-gray-900 py-2 text-center text-xs font-bold text-white transition-all hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 focus:outline-none"
-                        >
-                          {isOutOfStock && p.allowedActions.includes('buy') && p.allowedActions.length === 1 ? (
-                            <span>Sold Out</span>
-                          ) : p.allowedActions.includes('buy') ? (
-                            <span>Add to Cart</span>
-                          ) : p.allowedActions.includes('book') ? (
-                            <span>Book slot</span>
-                          ) : (
-                            <span>Get Quote</span>
-                          )}
-                        </button>
+                        {/* Interactive dynamic button or inline element */}
+                        {p.allowedActions.includes('buy') && !isOutOfStock && inCartQty > 0 ? (
+                          <div className="flex items-center justify-between gap-1 h-9 w-full bg-amber-50 border border-amber-200 rounded-xl p-1 animate-in fade-in zoom-in-95 duration-150">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (inCartQty <= 1) {
+                                  removeFromCart(activeBusiness.id, p.id);
+                                } else {
+                                  updateCartQuantity(activeBusiness.id, p.id, inCartQty - 1);
+                                }
+                              }}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-white border border-amber-250 text-amber-900 transition-all hover:bg-amber-100/50 active:scale-95 text-xs font-bold"
+                              title="Decrease Quantity"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <span className="text-[10px] sm:text-xs font-bold text-amber-900 font-mono">
+                              {inCartQty} in cart
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (inCartQty < p.stock) {
+                                  updateCartQuantity(activeBusiness.id, p.id, inCartQty + 1);
+                                }
+                              }}
+                              disabled={inCartQty >= p.stock}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-white border border-amber-250 text-amber-900 transition-all hover:bg-amber-100/50 disabled:opacity-40 disabled:hover:bg-white active:scale-95 text-xs font-bold"
+                              title="Increase Quantity"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (p.allowedActions.includes('buy') && !isOutOfStock) {
+                                addToCart(p);
+                              } else {
+                                handleProductDetails(p.id);
+                              }
+                            }}
+                            disabled={isOutOfStock && p.allowedActions.includes('buy') && p.allowedActions.length === 1}
+                            className="w-full flex items-center justify-center rounded-xl bg-gray-900 py-2 h-9 text-center text-xs font-bold text-white transition-all hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 focus:outline-none"
+                          >
+                            {isOutOfStock && p.allowedActions.includes('buy') && p.allowedActions.length === 1 ? (
+                              <span>Sold Out</span>
+                            ) : p.allowedActions.includes('buy') ? (
+                              <span>Add to Cart</span>
+                            ) : p.allowedActions.includes('book') ? (
+                              <span>Book slot</span>
+                            ) : (
+                              <span>Get Quote</span>
+                            )}
+                          </button>
+                        )}
                       </div>
 
                     </div>

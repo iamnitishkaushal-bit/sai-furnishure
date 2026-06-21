@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { usePlatform } from '../context/PlatformContext';
-import { ArrowLeft, ShoppingCart, MessageSquare, Calendar, ShieldCheck, Truck, Check, Info, Box } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, MessageSquare, Calendar, ShieldCheck, Truck, Check, Info, Box, Minus, Plus } from 'lucide-react';
 import ProductVisualizer from './ProductVisualizer';
 
 export default function ProductDetailModal() {
@@ -11,6 +11,9 @@ export default function ProductDetailModal() {
     setSelectedProductId,
     setCurrentScreen,
     addToCart,
+    carts,
+    updateCartQuantity,
+    removeFromCart,
     activeBusiness,
     submitEnquiry,
     createBooking,
@@ -51,6 +54,10 @@ export default function ProductDetailModal() {
 
   const categoryObj = categories.find(c => c.id === product.categoryId);
   const isOutOfStock = product.stock === 0;
+
+  const businessCart = carts[activeBusiness.id] || [];
+  const cartItem = businessCart.find(item => item.product.id === product.id);
+  const inCartQty = cartItem ? cartItem.quantity : 0;
 
   // Retrieve Related Products in same business unit
   const relatedProducts = products
@@ -256,32 +263,83 @@ export default function ProductDetailModal() {
               {/* Buy Action */}
               {product.allowedActions.includes('buy') && (
                 <>
-                  <button
-                    onClick={handleAddToCartDirect}
-                    disabled={isOutOfStock}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white py-3 text-xs font-bold text-gray-900 transition-all hover:bg-gray-50 disabled:bg-gray-50 disabled:text-gray-400"
-                  >
-                    {buySuccess ? (
-                      <>
-                        <Check className="h-4 w-4 text-emerald-700 stroke-[3]" />
-                        <span className="text-emerald-700">Added securely!</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="h-4 w-4 text-gray-500" />
-                        <span>Add To Shopping Cart</span>
-                      </>
-                    )}
-                  </button>
+                  {inCartQty > 0 ? (
+                    <>
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50/25 p-2 animate-in fade-in duration-200">
+                        <button
+                          onClick={() => {
+                            if (inCartQty <= 1) {
+                              removeFromCart(activeBusiness.id, product.id);
+                            } else {
+                              updateCartQuantity(activeBusiness.id, product.id, inCartQty - 1);
+                            }
+                          }}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-amber-200 text-amber-900 shadow-xs transition-all hover:bg-amber-100 active:scale-95 text-xs font-bold"
+                          title="Decrease Quantity"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <div className="text-center">
+                          <span className="block text-xs font-bold text-amber-900 font-mono">
+                            {inCartQty} in cart
+                          </span>
+                          <span className="block text-[9px] text-amber-700 font-medium">
+                            Adjust quantity as needed
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (inCartQty < product.stock) {
+                              updateCartQuantity(activeBusiness.id, product.id, inCartQty + 1);
+                            }
+                          }}
+                          disabled={inCartQty >= product.stock}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-amber-200 text-amber-950 shadow-xs transition-all hover:bg-amber-100 disabled:opacity-40 disabled:hover:bg-white active:scale-95 text-xs font-bold"
+                          title="Increase Quantity"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
 
-                  <button
-                    onClick={handleInstantBuyNew}
-                    disabled={isOutOfStock}
-                    className="flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold text-white transition-all disabled:bg-gray-300 disabled:text-gray-500"
-                    style={{ backgroundColor: isOutOfStock ? '#cbd5e1' : activeBusiness.accentColor }}
-                  >
-                    Buy Securely Now
-                  </button>
+                      <button
+                        onClick={() => setCurrentScreen('cart')}
+                        className="flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold text-white transition-all shadow-xs hover:opacity-90"
+                        style={{ backgroundColor: activeBusiness.accentColor }}
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        <span>View Shopping Cart / Checkout</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleAddToCartDirect}
+                        disabled={isOutOfStock}
+                        className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white py-3 text-xs font-bold text-gray-900 transition-all hover:bg-gray-50 disabled:bg-gray-50 disabled:text-gray-400"
+                      >
+                        {buySuccess ? (
+                          <>
+                            <Check className="h-4 w-4 text-emerald-700 stroke-[3]" />
+                            <span className="text-emerald-700">Added securely!</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="h-4 w-4 text-gray-500" />
+                            <span>Add To Shopping Cart</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={handleInstantBuyNew}
+                        disabled={isOutOfStock}
+                        className="flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold text-white transition-all disabled:bg-gray-300 disabled:text-gray-500"
+                        style={{ backgroundColor: isOutOfStock ? '#cbd5e1' : activeBusiness.accentColor }}
+                      >
+                        Buy Securely Now
+                      </button>
+                    </>
+                  )}
                 </>
               )}
 

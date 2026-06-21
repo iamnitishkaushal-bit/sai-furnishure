@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePlatform } from '../context/PlatformContext';
-import { Search, ChevronRight, Star, ShoppingCart, Calendar, ArrowRight, Sparkles, MessageSquare, AlertCircle } from 'lucide-react';
+import { Search, ChevronRight, Star, ShoppingCart, Calendar, ArrowRight, Sparkles, MessageSquare, AlertCircle, Check, Plus, Minus } from 'lucide-react';
 import ProductVisualizer from './ProductVisualizer';
 import { heroImages } from '../config/heroImages';
 import { imageLibrary } from '../config/imageLibrary';
@@ -13,6 +13,9 @@ export default function HomeView() {
     setSelectedProductId,
     setCurrentScreen,
     addToCart,
+    carts,
+    updateCartQuantity,
+    removeFromCart,
     searchQuery,
     setSearchQuery
   } = usePlatform();
@@ -182,21 +185,36 @@ export default function HomeView() {
               <div className="space-y-2">
                 <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">Products</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {searchResultsProducts.map(p => (
-                    <div
-                      key={p.id}
-                      onClick={() => handleProductClick(p.id)}
-                      className="flex items-center gap-3 rounded-xl border border-gray-100 p-2 cursor-pointer transition-all hover:bg-gray-50 hover:border-gray-250"
-                    >
-                      <ProductVisualizer id={p.id} color={p.image} category={categories.find(c => c.id === p.categoryId)?.name || ''} title={p.title} className="h-12 w-12 shrink-0 rounded-lg p-1" stock={p.stock} />
-                      <div className="min-w-0 flex-1">
-                        <span className="block text-xs font-bold text-gray-900 truncate">{p.title}</span>
-                        <span className="block text-xs font-mono font-medium text-amber-600">
-                          ₹{(p.salePrice || p.price).toLocaleString('en-IN')}
-                        </span>
+                  {searchResultsProducts.map(p => {
+                    const businessCart = carts[activeBusiness.id] || [];
+                    const cartItem = businessCart.find(item => item.product.id === p.id);
+                    const inCartQty = cartItem ? cartItem.quantity : 0;
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => handleProductClick(p.id)}
+                        className={`flex items-center gap-3 rounded-xl border p-2 cursor-pointer transition-all hover:bg-gray-50 hover:border-gray-250 ${
+                          inCartQty > 0 ? 'border-amber-400 bg-amber-50/10' : 'border-gray-100'
+                        }`}
+                      >
+                        <ProductVisualizer id={p.id} color={p.image} category={categories.find(c => c.id === p.categoryId)?.name || ''} title={p.title} className="h-12 w-12 shrink-0 rounded-lg p-1" stock={p.stock} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 justify-between">
+                            <span className="block text-xs font-bold text-gray-900 truncate">{p.title}</span>
+                            {inCartQty > 0 && (
+                              <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[8px] font-bold text-white uppercase tracking-wider shrink-0">
+                                <Check className="h-2 w-2 stroke-[3]" />
+                                {inCartQty}
+                              </span>
+                            )}
+                          </div>
+                          <span className="block text-xs font-mono font-medium text-amber-600">
+                            ₹{(p.salePrice || p.price).toLocaleString('en-IN')}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -309,20 +327,33 @@ export default function HomeView() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {defaultFeatured.map((p) => {
               const exactCategory = categories.find(c => c.id === p.categoryId)?.name || '';
+              const businessCart = carts[activeBusiness.id] || [];
+              const cartItem = businessCart.find(item => item.product.id === p.id);
+              const inCartQty = cartItem ? cartItem.quantity : 0;
               return (
                 <div
                   key={p.id}
-                  className="flex flex-col sm:flex-row rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md cursor-pointer"
+                  className={`flex flex-col sm:flex-row rounded-2xl border p-4 shadow-sm transition-all hover:shadow-md cursor-pointer ${
+                    inCartQty > 0 ? 'border-amber-400 bg-amber-50/10' : 'border-gray-200 bg-white'
+                  }`}
                   onClick={() => handleProductClick(p.id)}
                 >
-                  <ProductVisualizer
-                    id={p.id}
-                    color={p.image}
-                    category={exactCategory}
-                    title={p.title}
-                    className="h-36 w-full sm:w-36 rounded-xl shrink-0"
-                    stock={p.stock}
-                  />
+                  <div className="relative shrink-0 h-36 w-full sm:w-36">
+                    <ProductVisualizer
+                      id={p.id}
+                      color={p.image}
+                      category={exactCategory}
+                      title={p.title}
+                      className="h-full w-full rounded-xl"
+                      stock={p.stock}
+                    />
+                    {inCartQty > 0 && (
+                      <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-bold text-white shadow-sm border border-emerald-500 animate-in fade-in zoom-in-95 duration-150">
+                        <Check className="h-3 w-3 stroke-[3]" />
+                        <span>Added ({inCartQty})</span>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="mt-4 sm:mt-0 sm:ml-4 flex flex-col justify-between flex-1 min-w-0">
                     <div className="space-y-1">
@@ -350,19 +381,54 @@ export default function HomeView() {
                         )}
                       </div>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (p.allowedActions.includes('buy')) {
-                            addToCart(p);
-                          } else {
-                            handleProductClick(p.id);
-                          }
-                        }}
-                        className="rounded-lg bg-gray-950 px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-gray-800 focus:outline-none"
-                      >
-                        {p.allowedActions.includes('buy') ? 'Quick Buy' : 'Request Advice'}
-                      </button>
+                      {p.allowedActions.includes('buy') && p.stock > 0 && inCartQty > 0 ? (
+                        <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 rounded-xl p-1 animate-in fade-in zoom-in-95 duration-150 shrink-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (inCartQty <= 1) {
+                                removeFromCart(activeBusiness.id, p.id);
+                              } else {
+                                updateCartQuantity(activeBusiness.id, p.id, inCartQty - 1);
+                              }
+                            }}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-white border border-amber-250 text-amber-900 transition-all hover:bg-amber-100/50 active:scale-95 text-xs font-bold"
+                            title="Decrease Quantity"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+                          <span className="text-[10px] font-bold text-amber-900 font-mono px-1">
+                            {inCartQty} in cart
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (inCartQty < p.stock) {
+                                updateCartQuantity(activeBusiness.id, p.id, inCartQty + 1);
+                              }
+                            }}
+                            disabled={inCartQty >= p.stock}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-white border border-amber-250 text-amber-900 transition-all hover:bg-amber-100/50 disabled:opacity-40 disabled:hover:bg-white active:scale-95 text-xs font-bold"
+                            title="Increase Quantity"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (p.allowedActions.includes('buy') && p.stock > 0) {
+                              addToCart(p);
+                            } else {
+                              handleProductClick(p.id);
+                            }
+                          }}
+                          className="rounded-lg bg-gray-950 px-3.5 py-1.5 h-9 text-xs font-bold text-white transition-all hover:bg-gray-800 focus:outline-none"
+                        >
+                          {p.allowedActions.includes('buy') && p.stock > 0 ? 'Quick Buy' : 'Request Advice'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -384,11 +450,16 @@ export default function HomeView() {
             .map((p) => {
               const exactCat = categories.find(c => c.id === p.categoryId)?.name || '';
               const finalPrice = p.salePrice || p.price;
+              const businessCart = carts[activeBusiness.id] || [];
+              const cartItem = businessCart.find(item => item.product.id === p.id);
+              const inCartQty = cartItem ? cartItem.quantity : 0;
               return (
                 <div
                   key={p.id}
                   onClick={() => handleProductClick(p.id)}
-                  className="group flex flex-col rounded-2xl border border-gray-200 bg-white p-3 cursor-pointer select-none transition-all hover:shadow-lg hover:border-gray-250 animate-in fade-in zoom-in-95 duration-250"
+                  className={`group flex flex-col rounded-2xl border p-3 cursor-pointer select-none transition-all hover:shadow-lg hover:border-amber-300 animate-in fade-in zoom-in-95 duration-250 ${
+                    inCartQty > 0 ? 'border-amber-400 bg-amber-50/10' : 'border-gray-200 bg-white'
+                  }`}
                 >
                   <div className="relative">
                     <ProductVisualizer id={p.id} color={p.image} category={exactCat} title={p.title} className="aspect-square w-full" stock={p.stock} />
@@ -398,6 +469,13 @@ export default function HomeView() {
                       <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" />
                       <span>4.9</span>
                     </div>
+
+                    {inCartQty > 0 && (
+                      <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-bold text-white shadow-sm border border-emerald-500 animate-in fade-in zoom-in-95 duration-150">
+                        <Check className="h-3 w-3 stroke-[3]" />
+                        <span>({inCartQty})</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-3 flex flex-col justify-between flex-1 space-y-2">
@@ -408,21 +486,56 @@ export default function HomeView() {
                       </h3>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-gray-100 pt-2.5">
-                      <span className="font-mono text-xs font-bold text-amber-900">
+                    <div className="flex items-center justify-between border-t border-gray-100 pt-2.5 gap-1.5">
+                      <span className="font-mono text-xs font-bold text-amber-900 shrink-0">
                         ₹{finalPrice.toLocaleString('en-IN')}
                       </span>
 
                       {p.allowedActions.includes('buy') && p.stock > 0 ? (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart(p);
-                          }}
-                          className="rounded-lg bg-gray-950 px-2.5 py-1 text-[10px] text-white font-bold transition-all hover:bg-gray-800 focus:outline-none"
-                        >
-                          Add
-                        </button>
+                        inCartQty > 0 ? (
+                          <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 rounded-lg p-0.5 animate-in fade-in zoom-in-95 duration-150 shrink-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (inCartQty <= 1) {
+                                  removeFromCart(activeBusiness.id, p.id);
+                                } else {
+                                  updateCartQuantity(activeBusiness.id, p.id, inCartQty - 1);
+                                }
+                              }}
+                              className="flex h-5 w-5 items-center justify-center rounded bg-white border border-amber-200 text-amber-900 transition-all hover:bg-amber-100/50 active:scale-95 text-[10px] font-bold"
+                              title="Decrease"
+                            >
+                              <Minus className="h-2.5 w-2.5" />
+                            </button>
+                            <span className="text-[10px] font-bold text-amber-900 font-mono px-0.5">
+                              {inCartQty}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (inCartQty < p.stock) {
+                                  updateCartQuantity(activeBusiness.id, p.id, inCartQty + 1);
+                                }
+                              }}
+                              disabled={inCartQty >= p.stock}
+                              className="flex h-5 w-5 items-center justify-center rounded bg-white border border-amber-200 text-amber-950 transition-all hover:bg-amber-100/50 disabled:opacity-40 disabled:hover:bg-white active:scale-95 text-[10px] font-bold"
+                              title="Increase"
+                            >
+                              <Plus className="h-2.5 w-2.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart(p);
+                            }}
+                            className="rounded-lg bg-gray-950 px-2.5 py-1 text-[10px] text-white font-bold transition-all hover:bg-gray-800 focus:outline-none"
+                          >
+                            Add
+                          </button>
+                        )
                       ) : (
                         <button
                           onClick={(e) => {
