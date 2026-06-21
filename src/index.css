@@ -26,6 +26,7 @@ html, body, #root {
   padding: 0;
   overflow-x: hidden;
   min-height: 100%;
+  overscroll-behavior-y: none;
 }
 
 main, header, footer, section, article, nav, form, .container {
