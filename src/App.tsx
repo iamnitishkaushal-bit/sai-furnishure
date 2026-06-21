@@ -141,7 +141,7 @@ function PlatformApp() {
       <Header />
 
       {/* Primary Application Body */}
-      <main ref={mainScrollRef} className="flex-1 flex flex-col w-full max-w-full box-border pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-12">
+      <main ref={mainScrollRef} className="flex-1 flex flex-col w-full max-w-full box-border pb-0 md:pb-12">
         <div className="flex-1 flex flex-col w-full max-w-full box-border">
           {renderActiveScreen()}
         </div>
