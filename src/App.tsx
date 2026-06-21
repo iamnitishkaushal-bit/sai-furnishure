@@ -105,7 +105,7 @@ function PlatformApp() {
   };
 
   const renderFooter = () => (
-    <footer id="app-footer" className="bg-zinc-900 pt-10 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-10 text-gray-400 mt-12 border-t border-zinc-800">
+    <footer id="app-footer" className="bg-zinc-900 pt-10 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-10 text-gray-400 mt-auto border-t border-zinc-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-6 border-b border-zinc-805">
           <div className="flex items-center gap-2">
@@ -141,15 +141,11 @@ function PlatformApp() {
       <Header />
 
       {/* Primary Application Body */}
-      <main ref={mainScrollRef} className="flex-1 flex flex-col w-full max-w-full box-border pb-0 md:pb-12">
+      <main ref={mainScrollRef} className="flex-1 flex flex-col w-full max-w-full box-border pb-0">
         <div className="flex-1 flex flex-col w-full max-w-full box-border">
           {renderActiveScreen()}
         </div>
-        
-        {/* Render footer inside standard document flow at content end */}
-        <div className="w-full mt-auto">
-          {renderFooter()}
-        </div>
+        {renderFooter()}
       </main>
 
       {/* Fixed Bottom Navigation Bar (Mobile Only - Always Visible and Flush) */}
