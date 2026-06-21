@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { Business, Category, Product, CartItem, Order, Enquiry, Booking, Notification, Customer, AllowedAction } from '../types';
 import { loadDB, saveDB, LocalDB } from '../data';
 
@@ -136,6 +136,73 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('unified_multimerchant_active_user', JSON.stringify(activeUser));
     }
   }, [activeUser]);
+
+  // Synchronize navigation states with browser history to enable swipe-to-back and mechanical popstate navigation
+  const isPopStateRef = useRef(false);
+
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state && typeof event.state === 'object') {
+        const { screen, productId, isAdmin, businessId } = event.state;
+        isPopStateRef.current = true;
+
+        if (screen !== undefined) {
+          setCurrentScreen(screen);
+        }
+        if (productId !== undefined) {
+          setSelectedProductId(productId);
+        }
+        if (isAdmin !== undefined) {
+          setIsAdminMode(isAdmin);
+        }
+        if (businessId !== undefined && businessId !== activeBusinessId) {
+          setActiveBusinessId(businessId);
+        }
+
+        setTimeout(() => {
+          isPopStateRef.current = false;
+        }, 50);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    // Initialize/replace initial state so the first entry has state
+    const initialState = {
+      screen: currentScreen,
+      productId: selectedProductId,
+      isAdmin: isAdminMode,
+      businessId: activeBusinessId
+    };
+    window.history.replaceState(initialState, '', '');
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [activeBusinessId]);
+
+  useEffect(() => {
+    if (isPopStateRef.current) {
+      return;
+    }
+
+    const currentState = window.history.state;
+    const isDifferent = !currentState ||
+      currentState.screen !== currentScreen ||
+      currentState.productId !== selectedProductId ||
+      currentState.isAdmin !== isAdminMode ||
+      currentState.businessId !== activeBusinessId;
+
+    if (isDifferent) {
+      const nextState = {
+        screen: currentScreen,
+        productId: selectedProductId,
+        isAdmin: isAdminMode,
+        businessId: activeBusinessId
+      };
+      window.history.pushState(nextState, '', '');
+    }
+  }, [currentScreen, selectedProductId, isAdminMode, activeBusinessId]);
 
   // Helper to commit DB to state and storage
   const updateDB = (newDb: LocalDB) => {

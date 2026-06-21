@@ -38,6 +38,44 @@ function PlatformApp() {
     };
   }, []);
 
+  // Premium Native Touch Swipe-Back Gesture Detection for Mobile Safari/Chrome Experience (especially inside preview iframe)
+  useEffect(() => {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 1) return; // ignore multi-touch
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    };
+    
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.changedTouches.length === 0) return;
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = Math.abs(touchEndY - touchStartY);
+      
+      // We want to detect a swipe from left-to-right (swipe right)
+      // - deltaX > 80: dragged right by at least 80px
+      // - deltaX > deltaY * 2.0: horizontal drag is noticeably more pronounced than vertical scroll
+      // - touchStartX < window.innerWidth * 0.25: swipe must initiate near the left edge range
+      if (deltaX > 80 && deltaX > deltaY * 2.0 && touchStartX < window.innerWidth * 0.25) {
+        // Trigger browser back action inside the router stack
+        window.history.back();
+      }
+    };
+    
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (mainScrollRef.current) {
