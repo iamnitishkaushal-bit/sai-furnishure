@@ -135,7 +135,7 @@ function PlatformApp() {
   );
 
   return (
-    <div className="flex min-h-dvh max-w-full box-border flex-col bg-[#F5F5F3] overflow-x-hidden md:overflow-visible selection:bg-amber-100 selection:text-amber-905">
+    <div className="flex-1 flex max-w-full box-border flex-col bg-[#F5F5F3] overflow-x-hidden md:overflow-visible selection:bg-amber-100 selection:text-amber-905">
       
       {/* Dynamic Navigation Header */}
       <Header />
