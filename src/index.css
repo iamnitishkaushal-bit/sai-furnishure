@@ -22,13 +22,10 @@
 }
 
 html, body, #root {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  min-height: 100%;
-  min-height: 100dvh;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+  min-height: 100%;
 }
 
 main, header, footer, section, article, nav, form, .container {
@@ -59,4 +56,14 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* REAL MOBILE DEVICE OVERFLOW AUDIT & DEBUGGING HIGHLIGHTS */
+* {
+  outline: 1px solid rgba(239, 68, 68, 0.4) !important;
+}
+
+#app-footer {
+  outline: 3px solid #10b981 !important; /* Emerald highlight for the last structural block in the DOM */
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important;
 }
